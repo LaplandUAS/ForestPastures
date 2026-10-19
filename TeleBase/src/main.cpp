@@ -1,5 +1,10 @@
 #include "main.h"
 
+// SD card chip select pin
+const int CHIP_SELECT_PIN = 5;               // Default SS pin for SPI
+
+FtpServer ftpSrv;
+
 response_message responseData;
 
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
@@ -79,11 +84,14 @@ void setup() {
     Serial.begin(115200);
     Serial.println("Starting Base Station BLE Advertiser & ESP-NOW Receiver...");
     UpdateTime();
+
+    // Initialize SD card
     if(!m_mStorage.InitCard())
     {
         return;
     }
-        // Initialize WiFi to get MAC address
+
+    // Initialize WiFi to get MAC address
     WiFi.mode(WIFI_STA);
     String baseMAC = WiFi.macAddress();
     Serial.printf("Base Station WiFi MAC: %s\n", baseMAC.c_str());
@@ -96,7 +104,7 @@ void setup() {
         return;
     }
     
-    // Attach callbacks & stuff
+    // Register receive callback
     esp_now_register_recv_cb(OnDataRecv);
     esp_now_register_send_cb(OnDataSent);
     Serial.println("ESP-NOW receiver initialized");
@@ -107,19 +115,19 @@ void setup() {
     // Create BLE Server
     BLEServer* pServer = BLEDevice::createServer();
     
-    // Create BLE Service
+    // Create BLE Service (optional - just for identification)
     BLEService* pService = pServer->createService("12345678-1234-1234-1234-123456789abc");
     pService->start();
     
-    // Get advertising obj
+    // Get advertising object
     BLEAdvertising* pAdvertising = BLEDevice::getAdvertising();
     
     // Add service UUID to advertising data
     pAdvertising->addServiceUUID("12345678-1234-1234-1234-123456789abc");
     
-    // Set advertising params
+    // Set advertising parameters for better range/power balance
     pAdvertising->setScanResponse(true);
-    pAdvertising->setMinPreferred(0x06);    //This is for iPhone stuff
+    pAdvertising->setMinPreferred(0x06);  // Help with iPhone connections issue
     pAdvertising->setMaxPreferred(0x12);
     
     // Start advertising
@@ -128,13 +136,16 @@ void setup() {
     Serial.println("BLE advertising started!");
     Serial.println("Device name: BaseStation");
     Serial.println("Ready to receive ESP-NOW data and provide BLE proximity detection...");
+
+    ftpSrv.begin("esp32", "esp32"); // Käyttäjätunnus ja salasana
 }
 
 void loop() {
     // Just keep advertising and receiving - nothing else needed
-    delay(1000);
+    delay(10);
+    ftpSrv.handleFTP();
     
-    // Acknowledge existence
+    // Optional: Print status every 30 seconds
     static unsigned long lastStatus = 0;
     if (millis() - lastStatus > 30000) {
         Serial.println("Still advertising BLE and listening for ESP-NOW data...");

@@ -9,10 +9,12 @@
 #include "esp_now.h"
 #include "nettime.h"
 #include "storage.h"
+#include <SD.h>
+#include "SimpleFTPServer.h"
 
 typedef struct response_message {
     uint32_t unixTimestamp;  // Current Unix time from base station
-    uint8_t status;          // 0=success, 1=error (UNUSED!)
+    uint8_t status;          // 0=success, 1=error
     char message[32];
 } response_message;
 

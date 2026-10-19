@@ -23,6 +23,6 @@ void UpdateTime()
     uint32_t unix_epoch = (uint32_t)now;
 
     Serial.printf("UNIX epoch: %u\n", unix_epoch);
-    WiFi.disconnect(true);
-    WiFi.mode(WIFI_OFF);
+    //WiFi.disconnect(true);
+    //WiFi.mode(WIFI_OFF);
 }

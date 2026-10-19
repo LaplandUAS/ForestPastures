@@ -2,8 +2,8 @@
 #define STORAGE_H
 #include <Arduino.h>
 #include <FS.h>
-#include <SD.h>
 #include <SPI.h>
+#include <SD.h>
 
 class MassStorage
 {
